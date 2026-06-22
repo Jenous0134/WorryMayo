@@ -7,6 +7,7 @@ import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
 
 import 'bubble_page.dart';
+import 'clean_page.dart';
 import 'extras.dart';
 
 void main() => runApp(const MindCheckerApp());
@@ -16,7 +17,7 @@ class MindCheckerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-        title: '걱정하지마요',
+        title: '걱정마요',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
@@ -135,22 +136,14 @@ class _FeatureHomePageState extends State<FeatureHomePage>
     super.dispose();
   }
 
-  Future<void> _openKnock() async {
-    setState(() => _launching = 'knock');
-    await Future<void>.delayed(const Duration(milliseconds: 1120));
+  Future<void> _openFeature(
+      String id, Duration delay, WidgetBuilder builder) async {
+    if (_launching != null) return;
+    setState(() => _launching = id);
+    await Future<void>.delayed(delay);
     if (!mounted) return;
     setState(() => _launching = null);
-    Navigator.push(
-        context, MaterialPageRoute(builder: (_) => const HomePage()));
-  }
-
-  Future<void> _openBubble() async {
-    setState(() => _launching = 'bubble');
-    await Future<void>.delayed(const Duration(milliseconds: 1080));
-    if (!mounted) return;
-    setState(() => _launching = null);
-    Navigator.push(
-        context, MaterialPageRoute(builder: (_) => const MindBubblePage()));
+    Navigator.push(context, MaterialPageRoute(builder: builder));
   }
 
   @override
@@ -167,49 +160,76 @@ class _FeatureHomePageState extends State<FeatureHomePage>
                     colors: [
                       Color(0xfffff7f8),
                       Color(0xffffedf2),
-                      Color(0xffedfaff)
+                      Color(0xffedfaff),
                     ],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
                 ),
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Transform.translate(
-                            offset: Offset(0, wave * 6),
-                            child: _FeatureCircle(
-                              title: '마인드 체커',
-                              logoAsset:
-                                  'assets/images/logo/mind_check_logo.png',
-                              color: const Color(0xffffa9bc),
-                              shadowColor: const Color(0xffffb4c6),
-                              launching: _launching == 'knock',
-                              launchKind: _FeatureLaunchKind.knock,
-                              onTap: _openKnock,
-                            ),
-                          ),
-                          const SizedBox(height: 42),
-                          Transform.translate(
-                            offset: Offset(0, -wave * 6),
-                            child: _FeatureCircle(
-                              title: 'Troubley Bubbley',
-                              logoAsset:
-                                  'assets/images/logo/troubley_bubbley_logo.png',
-                              color: const Color(0xffaeeeff),
-                              shadowColor: const Color(0xffb5e9f7),
-                              launching: _launching == 'bubble',
-                              launchKind: _FeatureLaunchKind.bubble,
-                              onTap: _openBubble,
-                            ),
-                          ),
-                        ],
-                      ),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: MediaQuery.of(context).size.height - 72,
                     ),
-                  ],
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Transform.translate(
+                          offset: Offset(0, wave * 5),
+                          child: _FeatureCard(
+                            title: '고민 노크',
+                            subtitle: 'Mind Check',
+                            logoAsset: 'assets/images/logo/mind_check_logo.png',
+                            color: const Color(0xffffa9bc),
+                            shadowColor: const Color(0xffffb4c6),
+                            launching: _launching == 'knock',
+                            launchKind: _FeatureLaunchKind.knock,
+                            onTap: () => _openFeature(
+                                'knock',
+                                const Duration(milliseconds: 1120),
+                                (_) => const HomePage()),
+                          ),
+                        ),
+                        const SizedBox(height: 22),
+                        Transform.translate(
+                          offset: Offset(0, -wave * 4),
+                          child: _FeatureCard(
+                            title: '고민 버블',
+                            subtitle: 'Troubley-Bubbley',
+                            logoAsset:
+                                'assets/images/logo/troubley_bubbley_logo.png',
+                            color: const Color(0xffaeeeff),
+                            shadowColor: const Color(0xffb5e9f7),
+                            launching: _launching == 'bubble',
+                            launchKind: _FeatureLaunchKind.bubble,
+                            onTap: () => _openFeature(
+                                'bubble',
+                                const Duration(milliseconds: 1080),
+                                (_) => const MindBubblePage()),
+                          ),
+                        ),
+                        const SizedBox(height: 22),
+                        Transform.translate(
+                          offset: Offset(0, wave * 3),
+                          child: _FeatureCard(
+                            title: '고민 싹싹밀기',
+                            subtitle: 'trouble truncate',
+                            logoAsset:
+                                'assets/images/logo/trouble_truncate_logo.png',
+                            color: const Color(0xffffd58f),
+                            shadowColor: const Color(0xffffe1ad),
+                            launching: _launching == 'clean',
+                            launchKind: _FeatureLaunchKind.clean,
+                            onTap: () => _openFeature(
+                                'clean',
+                                const Duration(milliseconds: 760),
+                                (_) => const CleanPage()),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               );
             },
@@ -218,11 +238,12 @@ class _FeatureHomePageState extends State<FeatureHomePage>
       );
 }
 
-enum _FeatureLaunchKind { knock, bubble }
+enum _FeatureLaunchKind { knock, bubble, clean }
 
-class _FeatureCircle extends StatelessWidget {
-  const _FeatureCircle({
+class _FeatureCard extends StatelessWidget {
+  const _FeatureCard({
     required this.title,
+    required this.subtitle,
     required this.logoAsset,
     required this.color,
     required this.shadowColor,
@@ -232,6 +253,7 @@ class _FeatureCircle extends StatelessWidget {
   });
 
   final String title;
+  final String subtitle;
   final String logoAsset;
   final Color color;
   final Color shadowColor;
@@ -253,8 +275,7 @@ class _FeatureCircle extends StatelessWidget {
                 ? 1 + math.sin(t * math.pi * 4) * .045
                 : t < .62
                     ? 1 - Curves.easeInOut.transform(t / .62) * .18
-                    : 0.82 +
-                        Curves.easeOutBack.transform((t - .62) / .38) * .36;
+                    : .82 + Curves.easeOutBack.transform((t - .62) / .38) * .36;
             return CustomPaint(
               painter: _FeatureEffectPainter(
                 progress: t,
@@ -265,7 +286,7 @@ class _FeatureCircle extends StatelessWidget {
                 scale: scale,
                 child: Container(
                   width: 320,
-                  height: 98,
+                  height: 108,
                   padding: const EdgeInsets.fromLTRB(16, 14, 18, 14),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
@@ -291,13 +312,6 @@ class _FeatureCircle extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(.78),
                           borderRadius: BorderRadius.circular(24),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(.06),
-                              blurRadius: 14,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
                         ),
                         child: Image.asset(logoAsset, fit: BoxFit.contain),
                       ),
@@ -316,12 +330,18 @@ class _FeatureCircle extends StatelessWidget {
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w900,
-                                  fontSize: 25,
-                                  shadows: [
-                                    Shadow(
-                                        color: Color(0x1f000000), blurRadius: 8)
-                                  ],
+                                  fontSize: 24,
                                 ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              subtitle,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(.86),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                                letterSpacing: .2,
                               ),
                             ),
                           ],
@@ -412,6 +432,7 @@ class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   final _db = MindDatabase.instance;
   final _menuSearchController = TextEditingController();
+  final _menuFocusNode = FocusNode();
   late final AnimationController _orbController;
   Emotion? _selected;
   DateTime? _lastTap;
@@ -552,19 +573,31 @@ class _HomePageState extends State<HomePage>
     });
   }
 
-  void _selectEmotion(Emotion emotion) {
-    FocusScope.of(context).unfocus();
+  void _closeMenu() {
+    _menuFocusNode.unfocus();
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {
+      _menuOpen = false;
+    });
+  }
+
+  Future<void> _selectEmotion(Emotion emotion) async {
+    _menuFocusNode.unfocus();
+    FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
       _selected = emotion;
-      _menuOpen = false;
       _menuQuery = '';
       _menuSearchController.clear();
     });
+    await Future<void>.delayed(const Duration(milliseconds: 90));
+    if (!mounted) return;
+    setState(() => _menuOpen = false);
   }
 
   @override
   void dispose() {
     _menuSearchController.dispose();
+    _menuFocusNode.dispose();
     _decay?.cancel();
     _orbController.dispose();
     super.dispose();
@@ -625,8 +658,13 @@ class _HomePageState extends State<HomePage>
                                   icon: Icon(_menuOpen
                                       ? Icons.favorite
                                       : Icons.favorite_border_rounded),
-                                  onPressed: () =>
-                                      setState(() => _menuOpen = !_menuOpen),
+                                  onPressed: () {
+                                    if (_menuOpen) {
+                                      _closeMenu();
+                                    } else {
+                                      setState(() => _menuOpen = true);
+                                    }
+                                  },
                                 ),
                               ],
                             ),
@@ -669,6 +707,7 @@ class _HomePageState extends State<HomePage>
                 query: _menuQuery,
                 selectedId: _selected?.id,
                 searchController: _menuSearchController,
+                searchFocusNode: _menuFocusNode,
                 onQueryChanged: (value) => setState(() => _menuQuery = value),
                 onAdd: _addEmotion,
                 onSelect: _selectEmotion,
@@ -678,7 +717,7 @@ class _HomePageState extends State<HomePage>
                         builder: (_) => LogPage(emotion: emotion))),
                 onRename: _renameEmotion,
                 onDelete: _deleteEmotion,
-                onClose: () => setState(() => _menuOpen = false),
+                onClose: _closeMenu,
               ),
             ],
           ),
@@ -693,6 +732,7 @@ class _TopEmotionMenu extends StatelessWidget {
     required this.query,
     required this.selectedId,
     required this.searchController,
+    required this.searchFocusNode,
     required this.onQueryChanged,
     required this.onAdd,
     required this.onSelect,
@@ -707,9 +747,10 @@ class _TopEmotionMenu extends StatelessWidget {
   final String query;
   final int? selectedId;
   final TextEditingController searchController;
+  final FocusNode searchFocusNode;
   final ValueChanged<String> onQueryChanged;
   final VoidCallback onAdd;
-  final ValueChanged<Emotion> onSelect;
+  final Future<void> Function(Emotion) onSelect;
   final ValueChanged<Emotion> onLog;
   final ValueChanged<Emotion> onRename;
   final ValueChanged<Emotion> onDelete;
@@ -750,6 +791,7 @@ class _TopEmotionMenu extends StatelessWidget {
                             Expanded(
                               child: TextField(
                                 controller: searchController,
+                                focusNode: searchFocusNode,
                                 onChanged: onQueryChanged,
                                 decoration: InputDecoration(
                                   hintText: '감정 검색',

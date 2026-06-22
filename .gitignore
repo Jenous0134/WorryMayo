@@ -8,3 +8,4 @@
 build/
 android/.gradle/
 android/app/debug/
+.codex-remote-attachments/

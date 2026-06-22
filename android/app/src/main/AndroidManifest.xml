@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="걱정하지마요"
+        android:label="걱정마요"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
